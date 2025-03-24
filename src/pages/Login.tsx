@@ -1,7 +1,8 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, signup, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
@@ -19,6 +21,12 @@ const Login = () => {
     password: "",
     confirmPassword: "",
   });
+
+  // Redirect if already logged in
+  if (isAuthenticated) {
+    navigate("/inventory");
+    return null;
+  }
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,21 +38,26 @@ const Login = () => {
     setSignupData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await login(loginData.email, loginData.password);
       toast.success("Login successful", {
         description: "Welcome back to SpareMate Hub!",
       });
       navigate("/inventory");
-    }, 1500);
+    } catch (error) {
+      toast.error("Login failed", {
+        description: "Please check your credentials and try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
@@ -57,14 +70,19 @@ const Login = () => {
       return;
     }
     
-    // Simulate signup process
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signup(signupData.name, signupData.email, signupData.password);
       toast.success("Account created", {
         description: "Welcome to SpareMate Hub!",
       });
       navigate("/inventory");
-    }, 1500);
+    } catch (error) {
+      toast.error("Signup failed", {
+        description: "Please check your information and try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -105,9 +123,9 @@ const Login = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="password">Password</Label>
-                      <Link to="#" className="text-xs text-primary hover:underline">
+                      <a href="#" className="text-xs text-primary hover:underline">
                         Forgot password?
-                      </Link>
+                      </a>
                     </div>
                     <Input
                       id="password"
@@ -212,13 +230,13 @@ const Login = () => {
           <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>
               By continuing, you agree to our{" "}
-              <Link to="#" className="text-primary hover:underline">
+              <a href="#" className="text-primary hover:underline">
                 Terms of Service
-              </Link>{" "}
+              </a>{" "}
               and{" "}
-              <Link to="#" className="text-primary hover:underline">
+              <a href="#" className="text-primary hover:underline">
                 Privacy Policy
-              </Link>
+              </a>
               .
             </p>
           </div>

@@ -1,13 +1,16 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ShoppingCart, User, Search } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, ShoppingCart, User, Search, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,8 +24,16 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Inventory", path: "/inventory" },
-    { name: "API Docs", path: "/api-docs" },
+    ...(isAuthenticated ? [
+      { name: "API Docs", path: "/api-docs" },
+      { name: "Order Status", path: "/order-status" },
+    ] : []),
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <header 
@@ -57,32 +68,59 @@ const Navbar = () => {
           <Button variant="ghost" size="icon" className="hidden md:flex">
             <Search className="h-5 w-5" />
           </Button>
-          <Link to="/cart">
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full bg-primary text-[10px] text-white">
-                0
-              </span>
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button variant="ghost" size="icon" className="hidden md:flex">
-              <User className="h-5 w-5" />
-            </Button>
-          </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden md:inline-flex"
-          >
-            Log in
-          </Button>
-          <Button
-            size="sm"
-            className="hidden md:inline-flex"
-          >
-            Sign up
-          </Button>
+          
+          {isAuthenticated && (
+            <Link to="/cart">
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full bg-primary text-[10px] text-white">
+                  0
+                </span>
+              </Button>
+            </Link>
+          )}
+          
+          {isAuthenticated ? (
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="text-sm">
+                <span className="font-medium">{user?.name}</span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-primary"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" size="icon" className="hidden md:flex">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden md:inline-flex"
+                >
+                  Log in
+                </Button>
+              </Link>
+              <Link to="/login?tab=signup">
+                <Button
+                  size="sm"
+                  className="hidden md:inline-flex"
+                >
+                  Sign up
+                </Button>
+              </Link>
+            </>
+          )}
+          
           <Button
             variant="ghost"
             size="icon"
@@ -121,18 +159,44 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
-              <Link to="/login" className="text-lg py-2 border-b border-border">
-                Login
-              </Link>
-              <Link to="/cart" className="text-lg py-2 border-b border-border">
-                Cart
-              </Link>
+              
+              {isAuthenticated ? (
+                <>
+                  <Link to="/cart" className="text-lg py-2 border-b border-border" onClick={() => setIsMobileMenuOpen(false)}>
+                    Cart
+                  </Link>
+                  <Button 
+                    variant="ghost" 
+                    className="text-lg justify-start py-2 h-auto border-b border-border"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                  >
+                    <LogOut className="h-5 w-5 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="text-lg py-2 border-b border-border" onClick={() => setIsMobileMenuOpen(false)}>
+                    Login
+                  </Link>
+                  <Link to="/login?tab=signup" className="text-lg py-2 border-b border-border" onClick={() => setIsMobileMenuOpen(false)}>
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </nav>
-            <div className="mt-auto pb-10">
-              <Button className="w-full" size="lg">
-                Sign up
-              </Button>
-            </div>
+            {!isAuthenticated && (
+              <div className="mt-auto pb-10">
+                <Link to="/login?tab=signup" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button className="w-full" size="lg">
+                    Sign up
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}
