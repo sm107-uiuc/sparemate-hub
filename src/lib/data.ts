@@ -1,4 +1,3 @@
-
 export interface Part {
   id: string;
   name: string;
@@ -37,13 +36,11 @@ export interface Order {
   estimatedDelivery?: string;
 }
 
-// Generate 100 parts
 export const generateParts = (): Part[] => {
   const categories = ['Engine', 'Transmission', 'Suspension', 'Brakes', 'Electrical', 'Interior', 'Exterior', 'HVAC'];
   const manufacturers = ['OEM Solutions', 'TechPart', 'AutoElite', 'MechaWorks', 'PrimeDrive', 'VehiclePro'];
   const carBrands = ['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Volkswagen', 'Nissan', 'Hyundai', 'Kia'];
   
-  // Common models for each brand
   const carModels: Record<string, string[]> = {
     'Toyota': ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Tacoma'],
     'Honda': ['Civic', 'Accord', 'CR-V', 'Pilot', 'Odyssey'],
@@ -116,6 +113,49 @@ export const generateParts = (): Part[] => {
     ]
   };
   
+  const categoryImages: Record<string, string[]> = {
+    'Engine': [
+      '/images/engine-1.jpg',
+      '/images/engine-2.jpg',
+      '/images/engine-3.jpg'
+    ],
+    'Transmission': [
+      '/images/transmission-1.jpg',
+      '/images/transmission-2.jpg',
+      '/images/transmission-3.jpg'
+    ],
+    'Suspension': [
+      '/images/suspension-1.jpg',
+      '/images/suspension-2.jpg',
+      '/images/suspension-3.jpg'
+    ],
+    'Brakes': [
+      '/images/brakes-1.jpg',
+      '/images/brakes-2.jpg',
+      '/images/brakes-3.jpg'
+    ],
+    'Electrical': [
+      '/images/electrical-1.jpg',
+      '/images/electrical-2.jpg',
+      '/images/electrical-3.jpg'
+    ],
+    'Interior': [
+      '/images/interior-1.jpg',
+      '/images/interior-2.jpg',
+      '/images/interior-3.jpg'
+    ],
+    'Exterior': [
+      '/images/exterior-1.jpg',
+      '/images/exterior-2.jpg',
+      '/images/exterior-3.jpg'
+    ],
+    'HVAC': [
+      '/images/hvac-1.jpg',
+      '/images/hvac-2.jpg',
+      '/images/hvac-3.jpg'
+    ]
+  };
+  
   const parts: Part[] = [];
   
   for (let i = 1; i <= 100; i++) {
@@ -124,7 +164,6 @@ export const generateParts = (): Part[] => {
     const brand = carBrands[Math.floor(Math.random() * carBrands.length)];
     const models = carModels[brand];
     
-    // Create random compatible models (1-3 models from the same brand)
     const numModels = Math.floor(Math.random() * 3) + 1;
     const compatibility: string[] = [];
     
@@ -139,11 +178,9 @@ export const generateParts = (): Part[] => {
       }
     }
     
-    // Get a random description based on category
     const descriptions = partDescriptions[category];
     const description = descriptions[Math.floor(Math.random() * descriptions.length)];
     
-    // Create part name based on category
     let name = '';
     switch (category) {
       case 'Engine':
@@ -174,7 +211,6 @@ export const generateParts = (): Part[] => {
     
     name = `${manufacturer} ${name}`;
     
-    // Random pricing based on category
     let basePrice = 0;
     switch (category) {
       case 'Engine':
@@ -203,10 +239,11 @@ export const generateParts = (): Part[] => {
         break;
     }
     
-    // Generate unique SKU
     const sku = `${category.substring(0, 3).toUpperCase()}-${manufacturer.substring(0, 3).toUpperCase()}-${i.toString().padStart(5, '0')}`;
     
-    // Add the part
+    const categoryImagesArr = categoryImages[category] || ['/placeholder.svg'];
+    const imageUrl = categoryImagesArr[i % categoryImagesArr.length];
+    
     parts.push({
       id: `part-${i}`,
       name,
@@ -216,7 +253,7 @@ export const generateParts = (): Part[] => {
       compatibility,
       manufacturer,
       stock: Math.floor(Math.random() * 100),
-      imageUrl: `/placeholder.svg`,
+      imageUrl,
       rating: 3 + Math.random() * 2,
       reviews: Math.floor(Math.random() * 500),
       sku

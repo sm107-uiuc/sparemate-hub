@@ -114,3 +114,40 @@ export const getCart = (apiKey: string) => {
   
   return { success: true, cart: cartWithDetails };
 };
+
+// Mock API server handlers (simulating backend endpoints)
+// In a real app, these functions would be implemented on a backend server
+export const handleApiRequest = (endpoint: string, method: string, body?: any, apiKey?: string) => {
+  // Simulate network delay
+  return new Promise(resolve => {
+    setTimeout(() => {
+      // Validate API key presence
+      if (!apiKey) {
+        resolve({ success: false, error: "API key required" });
+        return;
+      }
+      
+      // Cart endpoints
+      if (endpoint === "/api/cart") {
+        if (method === "GET") {
+          resolve(getCart(apiKey));
+        } else if (method === "POST" && body?.partId && body?.quantity) {
+          resolve(addToCart(apiKey, body.partId, body.quantity));
+        } else {
+          resolve({ success: false, error: "Invalid request" });
+        }
+      } else if (endpoint.startsWith("/api/cart/") && method === "DELETE") {
+        const partId = endpoint.split("/").pop();
+        if (partId) {
+          resolve(removeFromCart(apiKey, partId));
+        } else {
+          resolve({ success: false, error: "Invalid part ID" });
+        }
+      }
+      // Parts endpoints could be added here
+      else {
+        resolve({ success: false, error: "Endpoint not found" });
+      }
+    }, 300);
+  });
+};
