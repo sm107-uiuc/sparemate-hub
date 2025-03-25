@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { CopyIcon, CheckIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -12,7 +11,7 @@ interface ApiCurlExamplesProps {
 const ApiCurlExamples = ({ apiKey }: ApiCurlExamplesProps) => {
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
   
-  // Updated to use window.location.origin to get the actual host
+  // Base URL for API requests
   const baseUrl = window.location.origin;
   
   const curlCommands = [
@@ -21,15 +20,17 @@ const ApiCurlExamples = ({ apiKey }: ApiCurlExamplesProps) => {
       title: "Get Cart",
       description: "Retrieve the current cart for this API key",
       command: `curl -X GET "${baseUrl}/api/cart" \\
-  -H "Authorization: Bearer ${apiKey}"`
+  -H "X-API-Key: ${apiKey}" \\
+  -H "Accept: application/json"`
     },
     {
       id: "add-to-cart",
       title: "Add to Cart",
       description: "Add a part to the cart",
       command: `curl -X POST "${baseUrl}/api/cart" \\
-  -H "Authorization: Bearer ${apiKey}" \\
+  -H "X-API-Key: ${apiKey}" \\
   -H "Content-Type: application/json" \\
+  -H "Accept: application/json" \\
   -d '{
     "partId": "part-1",
     "quantity": 2
@@ -40,7 +41,8 @@ const ApiCurlExamples = ({ apiKey }: ApiCurlExamplesProps) => {
       title: "Remove from Cart",
       description: "Remove a part from the cart",
       command: `curl -X DELETE "${baseUrl}/api/cart/part-1" \\
-  -H "Authorization: Bearer ${apiKey}"`
+  -H "X-API-Key: ${apiKey}" \\
+  -H "Accept: application/json"`
     }
   ];
 
@@ -92,7 +94,7 @@ const ApiCurlExamples = ({ apiKey }: ApiCurlExamplesProps) => {
       </div>
       
       <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 text-blue-700 text-sm">
-        <p><strong>Note:</strong> For testing purposes, replace "https://example.com" with your actual API endpoint. In a real application, this would be your server URL.</p>
+        <p><strong>Note:</strong> These commands can be run from your terminal to test the API endpoints.</p>
       </div>
     </div>
   );

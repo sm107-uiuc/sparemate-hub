@@ -4,6 +4,7 @@ import { ShoppingCart, Heart, Star, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Part } from "@/lib/data";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PartCardProps {
   part: Part;
@@ -13,6 +14,7 @@ interface PartCardProps {
 const PartCard = ({ part, onAddToCart }: PartCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
   const handleAddToCart = () => {
@@ -30,7 +32,15 @@ const PartCard = ({ part, onAddToCart }: PartCardProps) => {
 
   const handleImageError = () => {
     setImageError(true);
+    setIsImageLoading(false);
   };
+
+  const handleImageLoad = () => {
+    setIsImageLoading(false);
+  };
+
+  // Use a placeholder image from the uploaded image
+  const placeholderImage = "/lovable-uploads/67b116ed-7d38-46a4-92b8-b4d054966c83.png";
 
   return (
     <div 
@@ -38,7 +48,11 @@ const PartCard = ({ part, onAddToCart }: PartCardProps) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="aspect-square overflow-hidden bg-secondary/50 flex items-center justify-center">
+      <div className="aspect-square overflow-hidden bg-secondary/50 flex items-center justify-center relative">
+        {isImageLoading && !imageError && (
+          <Skeleton className="absolute inset-0 w-full h-full" />
+        )}
+        
         {imageError ? (
           <div className="flex flex-col items-center justify-center h-full w-full bg-muted">
             <ImageIcon className="h-12 w-12 text-muted-foreground" />
@@ -46,10 +60,11 @@ const PartCard = ({ part, onAddToCart }: PartCardProps) => {
           </div>
         ) : (
           <img
-            src={part.imageUrl}
+            src={part.imageUrl || placeholderImage}
             alt={part.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={handleImageError}
+            onLoad={handleImageLoad}
           />
         )}
       </div>

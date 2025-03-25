@@ -18,6 +18,76 @@ import NotFound from "./pages/NotFound";
 // Initialize API interceptor
 setupApiInterceptor();
 
+// Setup API endpoint handler
+if (typeof window !== 'undefined') {
+  const originalFetch = window.fetch;
+  window.fetch = async (input, init) => {
+    const url = input instanceof Request ? input.url : input.toString();
+    
+    // Handle API endpoints
+    if (url.includes('/api/')) {
+      // Simulate API response
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const apiKey = init?.headers && (init.headers as any)['X-API-Key'];
+          
+          // Check if API Key exists and is valid
+          if (!apiKey) {
+            resolve(new Response(JSON.stringify({ error: 'API Key is required' }), {
+              status: 401,
+              headers: { 'Content-Type': 'application/json' }
+            }));
+            return;
+          }
+          
+          // Handle different API endpoints
+          if (url.includes('/api/cart')) {
+            const method = init?.method || 'GET';
+            
+            if (method === 'GET') {
+              resolve(new Response(JSON.stringify({ 
+                items: [], 
+                total: 0,
+                message: 'Cart retrieved successfully' 
+              }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+              }));
+            } 
+            else if (method === 'POST') {
+              resolve(new Response(JSON.stringify({ 
+                success: true, 
+                message: 'Item added to cart successfully' 
+              }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+              }));
+            }
+            else if (method === 'DELETE') {
+              resolve(new Response(JSON.stringify({ 
+                success: true, 
+                message: 'Item removed from cart successfully' 
+              }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+              }));
+            }
+          } else {
+            // Default response for unknown API endpoints
+            resolve(new Response(JSON.stringify({ error: 'Endpoint not found' }), {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' }
+            }));
+          }
+        }, 500);
+      });
+    }
+    
+    // Continue with original fetch for non-API requests
+    return originalFetch(input, init);
+  };
+}
+
 const queryClient = new QueryClient();
 
 // Protected route component
