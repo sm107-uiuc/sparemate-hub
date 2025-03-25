@@ -6,6 +6,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  apiKey: string;
 }
 
 interface AuthContextType {
@@ -17,6 +18,19 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Function to generate a unique API key
+const generateApiKey = (): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const keyLength = 32;
+  let result = '';
+  
+  for (let i = 0; i < keyLength; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  return result;
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -41,7 +55,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const newUser = {
         id: `user-${Date.now()}`,
         name: email.split('@')[0],
-        email
+        email,
+        apiKey: generateApiKey()
       };
       
       setUser(newUser);
@@ -64,7 +79,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const newUser = {
         id: `user-${Date.now()}`,
         name,
-        email
+        email,
+        apiKey: generateApiKey()
       };
       
       setUser(newUser);

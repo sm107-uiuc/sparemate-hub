@@ -9,51 +9,83 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, ShoppingCart, Package, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { Part, parts as allParts } from "@/lib/data";
+import { useAuth } from "@/context/AuthContext";
 
-// Simulate cart from localStorage in a real app
-const getSavedCart = () => {
-  // In a real app, this would come from localStorage or session
-  // We'll simulate some items for demo purposes
-  return [
-    { partId: "part-1", quantity: 1 },
-    { partId: "part-8", quantity: 2 },
-    { partId: "part-15", quantity: 1 },
-  ];
+// Function to get the cart for a specific user
+const getUserCart = (userId: string) => {
+  const userCartKey = `cart-${userId}`;
+  const storedCart = localStorage.getItem(userCartKey);
+  
+  if (storedCart) {
+    return JSON.parse(storedCart);
+  }
+  
+  return []; // Return empty cart by default
+};
+
+// Function to save cart for a specific user
+const saveUserCart = (userId: string, cart: any[]) => {
+  const userCartKey = `cart-${userId}`;
+  localStorage.setItem(userCartKey, JSON.stringify(cart));
 };
 
 const Cart = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [cartItems, setCartItems] = useState<{ part: Part; quantity: number }[]>([]);
   
   useEffect(() => {
-    // Simulate retrieving cart data
+    if (!user) return;
+    
+    // Load cart data for the current user
     setIsLoading(true);
     
     setTimeout(() => {
-      const savedCart = getSavedCart();
+      const savedCart = getUserCart(user.id);
       
       // Map saved cart IDs to actual part objects
-      const items = savedCart.map(({ partId, quantity }) => {
+      const items = savedCart.map(({ partId, quantity }: { partId: string, quantity: number }) => {
         const part = allParts.find((p) => p.id === partId);
         return { part, quantity };
-      }).filter(({ part }) => part !== undefined) as { part: Part; quantity: number }[];
+      }).filter(({ part }: { part: Part | undefined }) => part !== undefined) as { part: Part; quantity: number }[];
       
       setCartItems(items);
       setIsLoading(false);
     }, 800);
-  }, []);
+  }, [user]);
   
   const updateQuantity = (partId: string, newQuantity: number) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.part.id === partId ? { ...item, quantity: newQuantity } : item
-      )
+    if (!user) return;
+    
+    const updatedCart = cartItems.map((item) =>
+      item.part.id === partId ? { ...item, quantity: newQuantity } : item
     );
+    
+    setCartItems(updatedCart);
+    
+    // Save updated cart to localStorage for this user
+    const cartToSave = updatedCart.map(({ part, quantity }) => ({
+      partId: part.id,
+      quantity
+    }));
+    
+    saveUserCart(user.id, cartToSave);
   };
   
   const removeItem = (partId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.part.id !== partId));
+    if (!user) return;
+    
+    const updatedCart = cartItems.filter((item) => item.part.id !== partId);
+    setCartItems(updatedCart);
+    
+    // Save updated cart to localStorage for this user
+    const cartToSave = updatedCart.map(({ part, quantity }) => ({
+      partId: part.id,
+      quantity
+    }));
+    
+    saveUserCart(user.id, cartToSave);
     
     toast.success("Item removed", {
       description: "The item has been removed from your cart.",
@@ -61,12 +93,16 @@ const Cart = () => {
   };
   
   const handleCheckout = () => {
+    if (!user) return;
+    
     toast.success("Order placed successfully!", {
       description: "Your order has been received and is being processed.",
     });
     
-    // Clear cart and redirect
+    // Clear cart for this user
     setCartItems([]);
+    saveUserCart(user.id, []);
+    
     navigate("/order-status");
   };
   
