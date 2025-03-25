@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ShoppingCart, Heart, Star } from "lucide-react";
+import { ShoppingCart, Heart, Star, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Part } from "@/lib/data";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ interface PartCardProps {
 const PartCard = ({ part, onAddToCart }: PartCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleAddToCart = () => {
     setIsLoading(true);
@@ -27,18 +28,30 @@ const PartCard = ({ part, onAddToCart }: PartCardProps) => {
     }, 600);
   };
 
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
   return (
     <div 
       className="group relative glass-morphism rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="aspect-square overflow-hidden bg-secondary/50">
-        <img
-          src={part.imageUrl}
-          alt={part.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+      <div className="aspect-square overflow-hidden bg-secondary/50 flex items-center justify-center">
+        {imageError ? (
+          <div className="flex flex-col items-center justify-center h-full w-full bg-muted">
+            <ImageIcon className="h-12 w-12 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground mt-2">Image unavailable</span>
+          </div>
+        ) : (
+          <img
+            src={part.imageUrl}
+            alt={part.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={handleImageError}
+          />
+        )}
       </div>
       
       <div className="absolute top-3 right-3">
