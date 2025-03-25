@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { setupApiInterceptor } from "@/lib/api";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Inventory from "./pages/Inventory";
@@ -12,6 +14,9 @@ import Cart from "./pages/Cart";
 import OrderStatus from "./pages/OrderStatus";
 import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
+
+// Initialize API interceptor
+setupApiInterceptor();
 
 const queryClient = new QueryClient();
 

@@ -1,4 +1,3 @@
-
 import { parts as allParts } from "./data";
 
 // Function to get the cart for a specific user
@@ -115,8 +114,81 @@ export const getCart = (apiKey: string) => {
   return { success: true, cart: cartWithDetails };
 };
 
-// Mock API server handlers (simulating backend endpoints)
-// In a real app, these functions would be implemented on a backend server
+// Create a middleware to intercept API requests
+export const setupApiInterceptor = () => {
+  const originalFetch = window.fetch;
+  
+  window.fetch = async function(input, init) {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+    
+    // Check if this is an API request
+    if (url.includes('/api/')) {
+      const headers = init?.headers instanceof Headers 
+        ? init.headers 
+        : new Headers(init?.headers || {});
+      
+      const authHeader = headers.get('Authorization');
+      if (!authHeader) {
+        return new Response(JSON.stringify({ success: false, error: "API key required" }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      const apiKey = authHeader.replace('Bearer ', '');
+      const method = init?.method || 'GET';
+      let body;
+      
+      try {
+        if (init?.body) {
+          body = typeof init.body === 'string' ? JSON.parse(init.body) : init.body;
+        }
+      } catch (e) {
+        console.error('Error parsing request body:', e);
+      }
+      
+      // Cart endpoint handlers
+      if (url.endsWith('/api/cart')) {
+        if (method === 'GET') {
+          const result = getCart(apiKey);
+          return new Response(JSON.stringify(result), {
+            status: result.success ? 200 : 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } 
+        else if (method === 'POST' && body?.partId && body?.quantity) {
+          const result = addToCart(apiKey, body.partId, body.quantity);
+          return new Response(JSON.stringify(result), {
+            status: result.success ? 200 : 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      } 
+      // Delete from cart endpoint
+      else if (url.match(/\/api\/cart\/[\w-]+/) && method === 'DELETE') {
+        const partId = url.split('/').pop();
+        if (partId) {
+          const result = removeFromCart(apiKey, partId);
+          return new Response(JSON.stringify(result), {
+            status: result.success ? 200 : 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      }
+      
+      // If we've reached here, it's an unknown API endpoint
+      return new Response(JSON.stringify({ success: false, error: "Endpoint not found" }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // For non-API requests, pass through to the original fetch
+    return originalFetch.apply(this, [input, init]);
+  };
+};
+
+// For backward compatibility, keep the original functions
 export const handleApiRequest = (endpoint: string, method: string, body?: any, apiKey?: string) => {
   // Simulate network delay
   return new Promise(resolve => {

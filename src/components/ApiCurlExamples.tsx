@@ -12,19 +12,22 @@ interface ApiCurlExamplesProps {
 const ApiCurlExamples = ({ apiKey }: ApiCurlExamplesProps) => {
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
   
+  // Updated to use window.location.origin to get the actual host
+  const baseUrl = window.location.origin;
+  
   const curlCommands = [
     {
       id: "get-cart",
       title: "Get Cart",
       description: "Retrieve the current cart for this API key",
-      command: `curl -X GET "https://example.com/api/cart" \\
+      command: `curl -X GET "${baseUrl}/api/cart" \\
   -H "Authorization: Bearer ${apiKey}"`
     },
     {
       id: "add-to-cart",
       title: "Add to Cart",
       description: "Add a part to the cart",
-      command: `curl -X POST "https://example.com/api/cart" \\
+      command: `curl -X POST "${baseUrl}/api/cart" \\
   -H "Authorization: Bearer ${apiKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -36,7 +39,7 @@ const ApiCurlExamples = ({ apiKey }: ApiCurlExamplesProps) => {
       id: "remove-from-cart",
       title: "Remove from Cart",
       description: "Remove a part from the cart",
-      command: `curl -X DELETE "https://example.com/api/cart/part-1" \\
+      command: `curl -X DELETE "${baseUrl}/api/cart/part-1" \\
   -H "Authorization: Bearer ${apiKey}"`
     }
   ];
